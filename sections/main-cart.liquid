@@ -1,0 +1,686 @@
+{{- 'main-cart.css' | asset_url | stylesheet_tag -}}
+<link rel="stylesheet" href="{{ 'component-cart-items.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-discounts.css' | asset_url }}" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="{{ 'component-loading-overlay.css' | asset_url }}" media="print" onload="this.media='all'">
+
+{%- unless settings.cart_type == 'drawer' -%}
+  <script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
+{%- endunless -%}
+
+{%- comment -%}
+  CSS custom properties — banner vars are set directly on .sc-banner via inline style
+  so they cannot bleed into other elements that use different color vars.
+{%- endcomment -%}
+<style>
+  :root {
+    --sc-btn-bg:      {{ section.settings.button_bg }};
+    --sc-btn-hover:   {{ section.settings.button_bg_hover }};
+    --sc-btn-text:    {{ section.settings.button_text_color }};
+    --sc-btn-radius:  {{ section.settings.button_radius }}px;
+    --sc-terms-text:  {{ section.settings.terms_text_color }};
+    --sc-terms-link:  {{ section.settings.terms_link_color }};
+  }
+</style>
+
+<cart-items class="sc-wrap{% if cart == empty %} is-empty{% endif %}">
+  <div class="page-width">
+
+    <nav class="sc-breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ routes.root_url }}">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="{{ routes.all_products_collection_url }}">Shop</a>
+      <span aria-hidden="true">/</span>
+      <span>Shop Cart</span>
+    </nav>
+
+    <h1 class="sc-heading">Shop Cart</h1>
+
+    {%- if cart == empty -%}
+      <div class="sc-empty">
+        <p>{{ 'sections.cart.empty' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="sc-btn-continue">
+          {{ 'general.continue_shopping' | t }}
+        </a>
+        {%- if shop.customer_accounts_enabled and customer == null -%}
+            <p class="sc-empty-login">
+                Log in to <a href="{{ routes.account_login_url }}">your account</a> to check out faster.
+            </p>
+        {%- endif -%}
+      </div>
+
+    {%- else -%}
+
+      <div class="sc-layout">
+
+        {%- comment -%}——— LEFT COLUMN ———{%- endcomment -%}
+        <div>
+
+          {%- if section.settings.show_banner -%}
+            {%- comment -%}
+              Banner inline style: scopes the color vars directly to this element
+              so they cannot affect breadcrumb, terms, or any other links.
+            {%- endcomment -%}
+            <div
+              class="sc-banner"
+              role="note"
+              style="
+                background: {{ section.settings.banner_bg }};
+                border-color: {{ section.settings.banner_border_color }};
+                border-radius: {{ section.settings.banner_radius }}px;
+                color: {{ section.settings.banner_text_color }};
+                --sc-banner-link: {{ section.settings.banner_link_color }};
+              "
+            >
+              {%- if section.settings.banner_link != blank -%}
+                <a href="{{ section.settings.banner_link }}">{{ section.settings.banner_text }}</a>
+              {%- else -%}
+                {{ section.settings.banner_text }}
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+
+          <form action="{{ routes.cart_url }}" method="post" id="cart">
+
+            <div class="sc-items" id="main-cart-items" data-id="{{ section.id }}">
+              <div class="js-contents">
+
+                {%- for item in cart.items -%}
+                  {%- assign safe_key = item.key | replace: ':', '_' | replace: '-', '_' -%}
+                  <div class="sc-item" id="CartItem-{{ item.index | plus: 1 }}">
+                    <div class="sc-item__left flex">
+                    <div class="sc-item__img">
+                      {%- if item.image -%}
+                        <a href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                          <img
+                            src="{{ item.image | image_url: width: 200 }}"
+                            alt="{{ item.image.alt | escape }}"
+                            loading="lazy"
+                            width="72"
+                            height="{{ 72 | divided_by: item.image.aspect_ratio | ceil }}"
+                          >
+                        </a>
+                      {%- endif -%}
+                    </div>
+
+                    <div class="sc-item__info">
+                      <a href="{{ item.url }}" class="sc-item__name">
+                        {{ item.product.title | escape }}
+                      </a>
+
+                      {%- if item.variant.weight > 0 -%}
+                        <p class="sc-item__meta">{{ item.variant.weight | weight_with_unit }}</p>
+                      {%- endif -%}
+
+                      {%- comment -%}
+                        Plain button — NO <cart-remove-button> wrapper.
+                        That custom element triggers the cart drawer/section renderer.
+                        We handle removal ourselves via AJAX below.
+                      {%- endcomment -%}
+                      <button
+                        type="button"
+                        class="sc-item__remove"
+                        aria-label="Remove {{ item.product.title | escape }} from cart"
+                        onclick="scRemoveItem(this, '{{ item.key }}')"
+                      >
+                        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M2 4h12M5 4V2.5h6V4M3.5 4l.9 9h7.2l.9-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                       Remove
+                      </button>
+
+                      <div class="sc-item__error" id="Line-item-error-{{ item.index | plus: 1 }}" role="alert"></div>
+                    </div>
+                    </div>
+                    <div class="sc-qty">
+                        <button
+                          type="button"
+                          class="sc-qty__btn"
+                          aria-label="Decrease quantity for {{ item.product.title | escape }}"
+                          onclick="scAdjustQty(this, -1, '{{ item.key }}')"
+                        >&#8722;</button>
+                        <input
+                          class="sc-qty__input"
+                          type="number"
+                          name="updates[]"
+                          id="updates_{{ item.key }}"
+                          value="{{ item.quantity }}"
+                          min="1"
+                          {%- if item.variant.quantity_rule.max != null %} max="{{ item.variant.quantity_rule.max }}"{% endif %}
+                          step="{{ item.variant.quantity_rule.increment }}"
+                          aria-label="Quantity for {{ item.product.title | escape }}"
+                          data-index="{{ item.index | plus: 1 }}"
+                        >
+                        <button
+                          type="button"
+                          class="sc-qty__btn"
+                          aria-label="Increase quantity for {{ item.product.title | escape }}"
+                          onclick="scAdjustQty(this, 1, '{{ item.key }}')"
+                        >&#43;</button>
+                      </div>
+                    <div class="sc-item__right">
+                      
+
+                      <div class="sc-item__price" id="sc-price-{{ safe_key }}" data-unit-price="{{ item.variant.price }}" data-compare-price="{{ item.variant.compare_at_price | default: 0 }}">
+                        {%- if item.variant.compare_at_price > item.variant.price -%}
+                          {%- comment -%} Actual sale product — has a compare-at price set {%- endcomment -%}
+                          <span class="sc-price-sale" data-line-price>{{ item.final_line_price | money }}</span>
+                          <span class="sc-price-original">{{ item.variant.compare_at_price | times: item.quantity | money }}</span>
+                        {%- else -%}
+                          {%- comment -%} Regular product — show final price (may include automatic discounts) {%- endcomment -%}
+                          <span class="sc-price-regular" data-line-price>{{ item.final_line_price | money }}</span>
+                        {%- endif -%}
+                      </div>
+                    </div>
+
+                  </div>
+                {%- endfor -%}
+
+              </div>
+            </div>
+
+            <div class="sc-actions">
+              <a href="{{ routes.all_products_collection_url }}" class="sc-btn-continue">
+                {{ section.settings.continue_button_text | default: 'Continue Shopping' }}
+              </a>
+            </div>
+
+            <p class="sc-sr-only" id="cart-live-region-text" aria-live="polite" role="status"></p>
+            <p class="sc-sr-only" id="shopping-cart-line-item-status" aria-live="polite" aria-hidden="true" role="status">
+              {{ 'accessibility.loading' | t }}
+            </p>
+
+          </form>
+        </div>
+
+        {%- comment -%}——— RIGHT COLUMN: summary ———{%- endcomment -%}
+        <aside id="main-cart-footer" data-id="{{ section.id }}" aria-label="Order summary">
+          <div class="sc-summary" data-service-fee="{{ section.settings.show_service_fee | json }}" data-service-fee-cents="{{ section.settings.service_fee_amount }}">
+            <h2 class="sc-summary__title">Summary</h2>
+
+            {%- if cart.cart_level_discount_applications.size > 0 -%}
+              <ul class="sc-discounts" role="list">
+                {%- for discount in cart.cart_level_discount_applications -%}
+                  <li>&#10003; {{ discount.title }} (-{{ discount.total_allocated_amount | money }})</li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            <div class="sc-summary__line">
+              <span>Item Subtotal</span>
+              <span data-item-subtotal>{{ cart.items_subtotal_price | money }}</span>
+            </div>
+
+            {%- if section.settings.show_service_fee and section.settings.service_fee_amount > 0 -%}
+              <div class="sc-summary__line">
+                <span>Service Fee</span>
+                <span>{{ section.settings.service_fee_amount | money }}</span>
+              </div>
+            {%- endif -%}
+
+            <hr class="sc-summary__divider">
+
+            {%- comment -%} Subtotal = Shopify total + service fee (if enabled) {%- endcomment -%}
+            {%- if section.settings.show_service_fee and section.settings.service_fee_amount > 0 -%}
+              {%- assign display_total = cart.total_price | plus: section.settings.service_fee_amount -%}
+            {%- else -%}
+              {%- assign display_total = cart.total_price -%}
+            {%- endif -%}
+
+            <div class="sc-summary__total">
+              <span>Subtotal</span>
+              <span data-cart-total>{{ display_total | money }}</span>
+            </div>
+
+            <button
+              type="submit"
+              id="checkout"
+              class="sc-btn-checkout"
+              name="checkout"
+              form="cart"
+              {% if cart == empty %}disabled{% endif %}
+            >
+              <span>{{ section.settings.checkout_button_text | default: 'Go to Checkout' }}</span>
+              <span data-cart-total>{{ display_total | money }}</span>
+            </button>
+
+            <p class="sc-terms">
+              {{ section.settings.terms_prefix_text }}
+              {%- if section.settings.terms_link != blank -%}
+                <a href="{{ section.settings.terms_link }}">{{ section.settings.terms_link_text }}</a>
+              {%- else -%}
+                <a href="{{ shop.url }}/policies/terms-of-service">{{ section.settings.terms_link_text }}</a>
+              {%- endif -%}
+              {{ section.settings.terms_middle_text }}
+              {%- if section.settings.privacy_link != blank -%}
+                <a href="{{ section.settings.privacy_link }}">{{ section.settings.privacy_link_text }}</a>
+              {%- else -%}
+                <a href="{{ shop.url }}/policies/privacy-policy">{{ section.settings.privacy_link_text }}</a>
+              {%- endif -%}
+              {{ section.settings.terms_suffix_text }}
+            </p>
+
+            <div id="cart-errors"></div>
+          </div>
+        </aside>
+
+      </div>
+
+    {%- endif -%}
+
+  </div>
+</cart-items>
+
+<script>
+  (function () {
+    document.addEventListener('DOMContentLoaded', function () {
+      var ua = window.navigator.userAgent;
+
+      if (ua.indexOf('MSIE ') < 0 && ua.indexOf('Trident/') < 0) {
+        return;
+      }
+
+      var form = document.querySelector('#cart');
+      var checkoutBtn = document.querySelector('#checkout');
+
+      if (!form || !checkoutBtn) {
+        return;
+      }
+
+      var input = document.createElement('input');
+      input.setAttribute('name', 'checkout');
+      input.setAttribute('type', 'hidden');
+      form.appendChild(input);
+
+      checkoutBtn.addEventListener('click', function () {
+        form.submit();
+      });
+    });
+
+    var scFmt = {{ shop.money_format | json }};
+
+    function scMoney(cents) {
+      var value = parseInt(cents, 10);
+
+      if (isNaN(value)) {
+        return '';
+      }
+
+      var amount = (value / 100).toFixed(2);
+      var amountNoDecimals = String(Math.round(value / 100));
+      var amountComma = amount.replace('.', ',');
+      var amountNoDecimalsComma = amountNoDecimals.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+      return scFmt
+        .replace(/\{\{amount\}\}/g, amount)
+        .replace(/\{\{amount_no_decimals\}\}/g, amountNoDecimals)
+        .replace(/\{\{amount_with_comma_separator\}\}/g, amountComma)
+        .replace(/\{\{amount_no_decimals_with_comma_separator\}\}/g, amountNoDecimalsComma);
+    }
+
+    function scGetServiceFee() {
+      var summary = document.querySelector('[data-service-fee]');
+
+      if (!summary) {
+        return 0;
+      }
+
+      var enabled = summary.getAttribute('data-service-fee') === 'true';
+
+      if (!enabled) {
+        return 0;
+      }
+
+      var cents = parseInt(summary.getAttribute('data-service-fee-cents'), 10);
+      return isNaN(cents) ? 0 : cents;
+    }
+
+    function scItemsSubtotal(items) {
+      return (items || []).reduce(function (total, item) {
+        var linePrice = parseInt(item.final_line_price, 10);
+        return total + (isNaN(linePrice) ? 0 : linePrice);
+      }, 0);
+    }
+
+    function scApplyCart(cartData) {
+      var fee = scGetServiceFee();
+
+      var itemsTotal = cartData.items_subtotal_price != null
+        ? parseInt(cartData.items_subtotal_price, 10)
+        : scItemsSubtotal(cartData.items);
+
+      if (!isNaN(itemsTotal)) {
+        document.querySelectorAll('[data-item-subtotal]').forEach(function (el) {
+          el.textContent = scMoney(itemsTotal);
+        });
+      }
+
+      var shopifyTotal = parseInt(cartData.total_price, 10);
+
+      if (!isNaN(shopifyTotal)) {
+        document.querySelectorAll('[data-cart-total]').forEach(function (el) {
+          el.textContent = scMoney(shopifyTotal + fee);
+        });
+      }
+    }
+
+    window.scAdjustQty = function (btn, direction, itemKey) {
+      var row = btn.closest('.sc-item');
+
+      if (!row || row.classList.contains('is-loading')) {
+        return;
+      }
+
+      var input = btn.parentElement.querySelector('input[type="number"]');
+
+      if (!input) {
+        return;
+      }
+
+      var current = parseInt(input.value, 10) || 1;
+      var next = current + direction;
+
+      if (next < 1) {
+        next = 1;
+      }
+
+      var max = input.getAttribute('max');
+
+      if (max && next > parseInt(max, 10)) {
+        next = parseInt(max, 10);
+      }
+
+      row.classList.add('is-loading');
+      input.value = next;
+
+      fetch('/cart/change.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: itemKey,
+          quantity: next
+        })
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (cartData) {
+          var lineItem = (cartData.items || []).find(function (item) {
+            return item.key === itemKey;
+          });
+
+          if (lineItem && lineItem.final_line_price != null) {
+            var safeKey = itemKey.replace(/[^a-zA-Z0-9]/g, '_');
+            var priceEl = document.getElementById('sc-price-' + safeKey);
+
+            if (priceEl) {
+              var comparePrice = parseInt(priceEl.getAttribute('data-compare-price'), 10) || 0;
+              var unitPrice = parseInt(priceEl.getAttribute('data-unit-price'), 10) || 0;
+              var isSale = comparePrice > 0 && comparePrice > unitPrice;
+
+              var linePriceEl = priceEl.querySelector('[data-line-price]');
+
+              if (linePriceEl) {
+                linePriceEl.textContent = scMoney(lineItem.final_line_price);
+              }
+
+              var originalPriceEl = priceEl.querySelector('.sc-price-original');
+
+              if (originalPriceEl && isSale) {
+                originalPriceEl.textContent = scMoney(comparePrice * lineItem.quantity);
+              }
+            }
+          }
+
+          scApplyCart(cartData);
+        })
+        .catch(function (error) {
+          console.warn('Cart qty update error:', error);
+        })
+        .finally(function () {
+          row.classList.remove('is-loading');
+        });
+    };
+
+    window.scRemoveItem = function (btn, itemKey) {
+      var cartItem = btn.closest('.sc-item');
+
+      if (!cartItem || cartItem.classList.contains('is-removing')) {
+        return;
+      }
+
+      cartItem.classList.add('is-removing');
+
+      fetch('/cart/change.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: itemKey,
+          quantity: 0
+        })
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (cartData) {
+          cartItem.style.transition = 'opacity 0.2s ease, max-height 0.3s ease';
+          cartItem.style.maxHeight = cartItem.offsetHeight + 'px';
+
+          requestAnimationFrame(function () {
+            cartItem.style.opacity = '0';
+            cartItem.style.maxHeight = '0';
+            cartItem.style.paddingTop = '0';
+            cartItem.style.paddingBottom = '0';
+            cartItem.style.overflow = 'hidden';
+          });
+
+          setTimeout(function () {
+            cartItem.remove();
+          }, 320);
+
+          scApplyCart(cartData);
+
+          if (cartData.item_count === 0) {
+            window.location.href = '/cart';
+          }
+        })
+        .catch(function (error) {
+          console.warn('Cart remove error:', error);
+          cartItem.classList.remove('is-removing');
+        });
+    };
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.shop-cart.name",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.shop-cart.settings.banner.header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_banner",
+      "label": "t:sections.shop-cart.settings.show_banner.label",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "banner_text",
+      "label": "t:sections.shop-cart.settings.banner_text.label",
+      "default": "You've got FREE delivery. Start checkout now!",
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+    {
+      "type": "url",
+      "id": "banner_link",
+      "label": "t:sections.shop-cart.settings.banner_link.label",
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+    {
+      "type": "color",
+      "id": "banner_bg",
+      "label": "t:sections.shop-cart.settings.banner_bg.label",
+      "default": "#fdecea",
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+    {
+      "type": "color",
+      "id": "banner_text_color",
+      "label": "t:sections.shop-cart.settings.banner_text_color.label",
+      "default": "#555555",
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+    {
+      "type": "color",
+      "id": "banner_border_color",
+      "label": "t:sections.shop-cart.settings.banner_border_color.label",
+      "default": "#f5c0bc",
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+    {
+      "type": "color",
+      "id": "banner_link_color",
+      "label": "t:sections.shop-cart.settings.banner_link_color.label",
+      "default": "#1a1a1a",
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+    {
+      "type": "range",
+      "id": "banner_radius",
+      "label": "t:sections.shop-cart.settings.banner_radius.label",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 7,
+      "visible_if": "{{ section.settings.show_banner == true }}"
+    },
+
+    {
+      "type": "header",
+      "content": "t:sections.shop-cart.settings.buttons.header"
+    },
+    {
+      "type": "text",
+      "id": "continue_button_text",
+      "label": "t:sections.shop-cart.settings.continue_button_text.label",
+      "default": "Continue Shopping"
+    },
+    {
+      "type": "text",
+      "id": "checkout_button_text",
+      "label": "t:sections.shop-cart.settings.checkout_button_text.label",
+      "default": "Go to Checkout"
+    },
+    {
+      "type": "color",
+      "id": "button_bg",
+      "label": "t:sections.shop-cart.settings.button_bg.label",
+      "default": "#0aad0a"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_hover",
+      "label": "t:sections.shop-cart.settings.button_bg_hover.label",
+      "default": "#099309"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "t:sections.shop-cart.settings.button_text_color.label",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "button_radius",
+      "label": "t:sections.shop-cart.settings.button_radius.label",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 6
+    },
+
+    {
+      "type": "header",
+      "content": "t:sections.shop-cart.settings.terms.header"
+    },
+    {
+      "type": "color",
+      "id": "terms_text_color",
+      "label": "t:sections.shop-cart.settings.terms_text_color.label",
+      "default": "#aaaaaa"
+    },
+    {
+      "type": "color",
+      "id": "terms_link_color",
+      "label": "t:sections.shop-cart.settings.terms_link_color.label",
+      "default": "#0aad0a"
+    },
+    {
+      "type": "text",
+      "id": "terms_prefix_text",
+      "label": "t:sections.shop-cart.settings.terms_prefix_text.label",
+      "default": "By placing your order, you agree to our"
+    },
+    {
+      "type": "text",
+      "id": "terms_link_text",
+      "label": "t:sections.shop-cart.settings.terms_link_text.label",
+      "default": "Terms of Service"
+    },
+    {
+      "type": "url",
+      "id": "terms_link",
+      "label": "t:sections.shop-cart.settings.terms_link.label"
+    },
+    {
+      "type": "text",
+      "id": "terms_middle_text",
+      "label": "t:sections.shop-cart.settings.terms_middle_text.label",
+      "default": "and"
+    },
+    {
+      "type": "text",
+      "id": "privacy_link_text",
+      "label": "t:sections.shop-cart.settings.privacy_link_text.label",
+      "default": "Privacy Policy"
+    },
+    {
+      "type": "url",
+      "id": "privacy_link",
+      "label": "t:sections.shop-cart.settings.privacy_link.label"
+    },
+    {
+      "type": "text",
+      "id": "terms_suffix_text",
+      "label": "t:sections.shop-cart.settings.terms_suffix_text.label",
+      "default": "."
+    },
+
+    {
+      "type": "header",
+      "content": "t:sections.shop-cart.settings.summary.header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_service_fee",
+      "label": "t:sections.shop-cart.settings.show_service_fee.label",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "service_fee_amount",
+      "label": "t:sections.shop-cart.settings.service_fee_amount.label",
+      "default": 300
+    }
+  ]
+}
+{% endschema %}

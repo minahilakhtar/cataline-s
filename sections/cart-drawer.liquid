@@ -1,0 +1,534 @@
+{{ 'cart-drawer-custom.css' | asset_url | stylesheet_tag }}
+<link rel="stylesheet" href="{{ 'quantity-popover.css' | asset_url }}" media="print" onload="this.media='all'">
+
+<script src="{{ 'cart.js' | asset_url }}" defer="defer"></script>
+<script src="{{ 'quantity-popover.js' | asset_url }}" defer="defer"></script>
+
+<style>
+  :root {
+    --cd-btn-bg: {{ section.settings.button_bg }};
+    --cd-btn-hover: {{ section.settings.button_bg_hover }};
+    --cd-btn-text: {{ section.settings.button_text_color }};
+    --cd-btn-radius: {{ section.settings.button_radius }}px;
+
+    --cd-update-btn-bg: {{ section.settings.update_button_bg }};
+    --cd-update-btn-hover: {{ section.settings.update_button_bg_hover }};
+    --cd-update-btn-text: {{ section.settings.update_button_text_color }};
+    --cd-update-btn-radius: {{ section.settings.update_button_radius }}px;
+
+    --cd-side-space: {{ section.settings.side_spacing }}px;
+    --cd-header-pt: {{ section.settings.header_padding_top }}px;
+    --cd-header-pb: {{ section.settings.header_padding_bottom }}px;
+    --cd-banner-py: {{ section.settings.banner_padding_y }}px;
+    --cd-banner-mb: {{ section.settings.banner_margin_bottom }}px;
+    --cd-item-py: {{ section.settings.item_padding_y }}px;
+    --cd-item-gap: {{ section.settings.item_gap }}px;
+    --cd-footer-pt: {{ section.settings.footer_padding_top }}px;
+    --cd-footer-pb: {{ section.settings.footer_padding_bottom }}px;
+    --cd-checkout-mb: {{ section.settings.checkout_bottom_spacing }}px;
+    --cd-divider-color: {{ section.settings.divider_color }};
+    --cd-price-width: {{ section.settings.price_column_width }}px;
+    --cd-qty-width: {{ section.settings.quantity_width }}px;
+    --cd-drawer-width: {{ section.settings.drawer_width }}px;
+  }
+</style>
+
+<cart-drawer class="drawer{% if cart == empty %} is-empty{% endif %}">
+  <div id="CartDrawer" class="cart-drawer">
+    <div id="CartDrawer-Overlay" class="cart-drawer__overlay"></div>
+
+    <div
+      class="drawer__inner"
+      role="dialog"
+      aria-modal="true"
+      aria-label="{{ 'sections.cart.title' | t }}"
+      tabindex="-1"
+    >
+      {% if cart == empty %}
+        <div class="drawer__inner-empty cart-drawer__warnings">
+          <div class="cd-empty-state">
+            <div class="cd-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <path d="M3 6h18"/>
+                <path d="M9 10h6"/>
+              </svg>
+            </div>
+            <h3>{{ 'sections.cart.empty' | t }}</h3>
+            <p>Looks like you haven’t added anything yet.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="cd-btn-empty">
+              {{ 'general.continue_shopping' | t }}
+            </a>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="cd-header drawer__header">
+        <div>
+          <h2 class="cd-header__title">Shop Cart</h2>
+          <p class="cd-header__count">
+            <span>{{ cart.item_count }}</span>
+            {{ cart.item_count | pluralize: 'item', 'items' }}
+          </p>
+        </div>
+
+        <button
+          class="cd-close-btn drawer__close"
+          type="button"
+          onclick="this.closest('cart-drawer').close()"
+          aria-label="{{ 'accessibility.close' | t }}"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+          <span class="visually-hidden">{{ 'accessibility.close' | t }}</span>
+        </button>
+      </div>
+
+      {% if section.settings.show_banner and cart != empty %}
+        <div
+          class="cd-banner"
+          style="background: {{ section.settings.banner_bg }}; color: {{ section.settings.banner_text_color }}; border-color: {{ section.settings.banner_border_color }};"
+        >
+          {% if section.settings.banner_link != blank %}
+            <a href="{{ section.settings.banner_link }}" style="color: {{ section.settings.banner_link_color }};">
+              {{ section.settings.banner_text }}
+            </a>
+          {% else %}
+            {{ section.settings.banner_text }}
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <cart-drawer-items {% if cart == empty %}class="is-empty"{% endif %}>
+        <form action="{{ routes.cart_url }}" id="CartDrawer-Form" class="cart__contents" method="post">
+          <div id="CartDrawer-CartItems" class="drawer__contents js-contents">
+            {% if cart != empty %}
+              <div class="drawer__cart-items-wrapper">
+                {% for item in cart.items %}
+                  {% assign is_sale = false %}
+                  {% if item.variant.compare_at_price > item.variant.price %}
+                    {% assign is_sale = true %}
+                  {% endif %}
+
+                  <div class="cd-item" id="CartDrawer-Item-{{ item.index | plus: 1 }}">
+                    <div class="cd-item__img">
+                      {% if item.image %}
+                        <a href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                          <img
+                            src="{{ item.image | image_url: width: 160 }}"
+                            alt="{{ item.image.alt | escape }}"
+                            loading="lazy"
+                            width="68"
+                            height="{{ 68 | divided_by: item.image.aspect_ratio | ceil }}"
+                          >
+                        </a>
+                      {% endif %}
+                    </div>
+
+                    <div class="cd-item__info">
+                      <a href="{{ item.url }}" class="cd-item__name">{{ item.product.title | escape }}</a>
+
+                      {% assign item_meta = blank %}
+                      {% if item.variant.title != blank and item.variant.title != 'Default Title' %}
+                        {% assign item_meta = item.variant.title %}
+                      {% elsif item.product.metafields.custom.weight != blank %}
+                        {% assign item_meta = item.product.metafields.custom.weight.value %}
+                      {% endif %}
+
+                      {% if item_meta != blank %}
+                        <span class="cd-item__meta">{{ item_meta }}</span>
+                      {% endif %}
+
+                      <cart-remove-button
+                        id="CartDrawer-Remove-{{ item.index | plus: 1 }}"
+                        data-index="{{ item.index | plus: 1 }}"
+                        class="cd-remove-wrap"
+                      >
+                        <a
+                          href="{{ item.url_to_remove }}"
+                          class="cd-remove-link"
+                          aria-label="{{ 'sections.cart.remove_title' | t: title: item.title }}"
+                        >
+                          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M2 4h12M5 4V2.5h6V4M3.5 4l.9 9h7.2l.9-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          Remove
+                        </a>
+                      </cart-remove-button>
+
+                      <div
+                        id="CartDrawer-LineItemError-{{ item.index | plus: 1 }}"
+                        class="cart-item__error"
+                        role="alert"
+                      >
+                        <small class="cart-item__error-text"></small>
+                      </div>
+                    </div>
+
+                    <div class="cd-item__right">
+                      <div class="cd-item__qty">
+                        <quantity-input class="quantity">
+                          <button
+                            class="quantity__button no-js-hidden"
+                            name="minus"
+                            type="button"
+                            aria-label="{{ 'products.product.quantity.decrease' | t: product: item.product.title | escape }}"
+                          >
+                            <span class="visually-hidden">{{ 'products.product.quantity.decrease' | t: product: item.product.title | escape }}</span>
+                          </button>
+
+                          <input
+                            class="quantity__input"
+                            type="number"
+                            name="updates[]"
+                            id="Drawer-quantity-{{ item.index | plus: 1 }}"
+                            value="{{ item.quantity }}"
+                            data-cart-quantity="{{ cart | item_count_for_variant: item.variant.id }}"
+                            min="{{ item.variant.quantity_rule.min }}"
+                            {% if item.variant.quantity_rule.max != null %}max="{{ item.variant.quantity_rule.max }}"{% endif %}
+                            step="{{ item.variant.quantity_rule.increment }}"
+                            aria-label="{{ 'products.product.quantity.input_label' | t: product: item.product.title | escape }}"
+                            data-index="{{ item.index | plus: 1 }}"
+                            data-quantity-variant-id="{{ item.variant.id }}"
+                          >
+
+                          <button
+                            class="quantity__button no-js-hidden"
+                            name="plus"
+                            type="button"
+                            aria-label="{{ 'products.product.quantity.increase' | t: product: item.product.title | escape }}"
+                          >
+                            <span class="visually-hidden">{{ 'products.product.quantity.increase' | t: product: item.product.title | escape }}</span>
+                          </button>
+                        </quantity-input>
+                      </div>
+
+                      <div class="cd-item__price">
+                        {% if is_sale %}
+                          <span class="cd-price-sale">{{ item.final_line_price | money }}</span>
+                          <span class="cd-price-original">{{ item.variant.compare_at_price | times: item.quantity | money }}</span>
+                        {% else %}
+                          <span class="cd-price-regular">{{ item.final_line_price | money }}</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <p id="CartDrawer-LiveRegionText" class="visually-hidden" role="status"></p>
+          <p id="CartDrawer-LineItemStatus" class="visually-hidden" aria-hidden="true" role="status">
+            {{ 'accessibility.loading' | t }}
+          </p>
+          <div id="CartDrawer-CartErrors" role="alert"></div>
+        </form>
+      </cart-drawer-items>
+
+      <div class="drawer__footer cd-footer">
+        <div class="cd-footer-actions">
+          <a href="{{ routes.all_products_collection_url }}" class="cd-btn-continue">
+            {{ section.settings.continue_button_text | default: 'Continue Shopping' }}
+          </a>
+
+          <a href="{{ routes.cart_url }}" class="cd-btn-update">
+            {{ section.settings.update_button_text | default: 'Update Cart' }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</cart-drawer>
+
+{% schema %}
+{
+  "name": "t:sections.cart-drawer.name",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.cart-drawer.settings.banner.header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_banner",
+      "label": "t:sections.cart-drawer.settings.show_banner.label",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "banner_text",
+      "label": "t:sections.cart-drawer.settings.banner_text.label",
+      "default": "You've got FREE delivery. Start checkout now!"
+    },
+    {
+      "type": "url",
+      "id": "banner_link",
+      "label": "t:sections.cart-drawer.settings.banner_link.label"
+    },
+    {
+      "type": "color",
+      "id": "banner_bg",
+      "label": "t:sections.cart-drawer.settings.banner_bg.label",
+      "default": "#fdecea"
+    },
+    {
+      "type": "color",
+      "id": "banner_text_color",
+      "label": "t:sections.cart-drawer.settings.banner_text_color.label",
+      "default": "#555555"
+    },
+    {
+      "type": "color",
+      "id": "banner_border_color",
+      "label": "t:sections.cart-drawer.settings.banner_border_color.label",
+      "default": "#f1acac"
+    },
+    {
+      "type": "color",
+      "id": "banner_link_color",
+      "label": "t:sections.cart-drawer.settings.banner_link_color.label",
+      "default": "#1a1a1a"
+    },
+
+    {
+      "type": "header",
+      "content": "t:sections.cart-drawer.settings.layout.header"
+    },
+    {
+      "type": "range",
+      "id": "side_spacing",
+      "label": "t:sections.cart-drawer.settings.side_spacing.label",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "header_padding_top",
+      "label": "t:sections.cart-drawer.settings.header_padding_top.label",
+      "min": 8,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "header_padding_bottom",
+      "label": "t:sections.cart-drawer.settings.header_padding_bottom.label",
+      "min": 8,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "banner_padding_y",
+      "label": "t:sections.cart-drawer.settings.banner_padding_y.label",
+      "min": 6,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 9
+    },
+    {
+      "type": "range",
+      "id": "banner_margin_bottom",
+      "label": "t:sections.cart-drawer.settings.banner_margin_bottom.label",
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "item_padding_y",
+      "label": "t:sections.cart-drawer.settings.item_padding_y.label",
+      "min": 8,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "label": "t:sections.cart-drawer.settings.item_gap.label",
+      "min": 8,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "quantity_width",
+      "label": "t:sections.cart-drawer.settings.quantity_width.label",
+      "min": 80,
+      "max": 130,
+      "step": 1,
+      "unit": "px",
+      "default": 108
+    },
+    {
+      "type": "range",
+      "id": "price_column_width",
+      "label": "t:sections.cart-drawer.settings.price_column_width.label",
+      "min": 70,
+      "max": 130,
+      "step": 1,
+      "unit": "px",
+      "default": 92
+    },
+    {
+      "type": "range",
+      "id": "footer_padding_top",
+      "label": "t:sections.cart-drawer.settings.footer_padding_top.label",
+      "min": 8,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "footer_padding_bottom",
+      "label": "t:sections.cart-drawer.settings.footer_padding_bottom.label",
+      "min": 12,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "t:sections.cart-drawer.settings.divider_color.label",
+      "default": "#ebebeb"
+    },
+    {
+      "type": "range",
+      "id": "drawer_width",
+      "label": "t:sections.cart-drawer.settings.drawer_width.label",
+      "min": 420,
+      "max": 560,
+      "step": 10,
+      "unit": "px",
+      "default": 560
+    },
+    {
+      "type": "range",
+      "id": "checkout_bottom_spacing",
+      "label": "t:sections.cart-drawer.settings.checkout_bottom_spacing.label",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+
+    {
+      "type": "header",
+      "content": "t:sections.cart-drawer.settings.buttons.header"
+    },
+    {
+      "type": "text",
+      "id": "continue_button_text",
+      "label": "t:sections.cart-drawer.settings.continue_button_text.label",
+      "default": "Continue Shopping"
+    },
+    {
+      "type": "text",
+      "id": "checkout_button_text",
+      "label": "t:sections.cart-drawer.settings.checkout_button_text.label",
+      "default": "Go to Checkout"
+    },
+    {
+      "type": "color",
+      "id": "button_bg",
+      "label": "t:sections.cart-drawer.settings.button_bg.label",
+      "default": "#0aad0a"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_hover",
+      "label": "t:sections.cart-drawer.settings.button_bg_hover.label",
+      "default": "#099309"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "t:sections.cart-drawer.settings.button_text_color.label",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "button_radius",
+      "label": "t:sections.cart-drawer.settings.button_radius.label",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 6
+    },
+
+    {
+      "type": "text",
+      "id": "update_button_text",
+      "label": "t:sections.cart-drawer.settings.update_button_text.label",
+      "default": "Update Cart"
+    },
+    {
+      "type": "color",
+      "id": "update_button_bg",
+      "label": "t:sections.cart-drawer.settings.update_button_bg.label",
+      "default": "#062c3f"
+    },
+    {
+      "type": "color",
+      "id": "update_button_bg_hover",
+      "label": "t:sections.cart-drawer.settings.update_button_bg_hover.label",
+      "default": "#041f2d"
+    },
+    {
+      "type": "color",
+      "id": "update_button_text_color",
+      "label": "t:sections.cart-drawer.settings.update_button_text_color.label",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "update_button_radius",
+      "label": "t:sections.cart-drawer.settings.update_button_radius.label",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "default": 6
+    },
+
+    {
+      "type": "header",
+      "content": "t:sections.cart-drawer.settings.summary.header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_service_fee",
+      "label": "t:sections.cart-drawer.settings.show_service_fee.label",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "service_fee_amount",
+      "label": "t:sections.cart-drawer.settings.service_fee_amount.label",
+      "default": 300
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,87 @@
+{% style %}
+  .horizontal-line-section-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  .horizontal-line-section-{{ section.id }} .page-width {
+    max-width: var(--page-width, 1200px);
+    margin: 0 auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .horizontal-line-section-{{ section.id }} .horizontal-line {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-top: {{ section.settings.thickness }}px solid {{ section.settings.line_color }};
+    opacity: {{ section.settings.opacity }};
+  }
+{% endstyle %}
+
+<div class="horizontal-line-section-{{ section.id }}">
+  <div class="page-width">
+    <hr class="horizontal-line">
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.horizontal_line.name",
+  "tag": "section",
+  "class": "section section-horizontal-line",
+  "settings": [
+    {
+      "type": "color",
+      "id": "line_color",
+      "label": "t:sections.horizontal_line.settings.line_color.label",
+      "default": "#d9d9d9"
+    },
+    {
+      "type": "range",
+      "id": "thickness",
+      "label": "t:sections.horizontal_line.settings.thickness.label",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "t:sections.horizontal_line.settings.opacity.label",
+      "min": 0.1,
+      "max": 1,
+      "step": 0.1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "t:sections.horizontal_line.settings.padding_top.label",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "t:sections.horizontal_line.settings.padding_bottom.label",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.horizontal_line.presets.name"
+    }
+  ]
+}
+{% endschema %}

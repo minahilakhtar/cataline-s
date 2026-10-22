@@ -1,0 +1,18 @@
+.section-collection-showcase-card .collection-item {
+  text-decoration: none;
+}
+
+.section-collection-showcase-card .collection-card-placeholder-svg {
+  width: 120px;
+  height: 120px;
+}
+
+.section-collection-showcase-card .collection-placeholder-svg {
+  width: 112px;
+  height: 112px;
+}
+
+.section-collection-showcase-card .collection-title {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
