@@ -1,7 +1,8 @@
 {% liquid
   assign header_menu = section.settings.menu
-  assign story_url = section.settings.story_url | default: '/pages/about-us'
-  assign contact_url = section.settings.contact_url | default: '/pages/contact'
+  assign home_url = 'https://catalinasfarm.com/pages/home'
+  assign story_url = 'https://catalinasfarm.com/pages/about-us'
+  assign contact_url = 'https://catalinasfarm.com/pages/contact-us'
 %}
 <div id="cf-header-{{ section.id }}" class="cfh" data-cfh data-cart-url="{{ routes.cart_url | escape }}">
   {% if section.settings.announcement != blank %}<div class="cfh-announcement">{{ section.settings.announcement | escape }}</div>{% endif %}
@@ -11,21 +12,47 @@
       <nav aria-label="Mobile navigation" class="cfh-mobile-panel">
         {% if header_menu != blank %}
           {% for link in header_menu.links %}
-            <a href="{{ link.url }}" {% if link.current %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>
+            {% liquid
+              assign nav_url = link.url
+              assign nav_label = link.title | handleize
+              case nav_label
+                when 'home'
+                  assign nav_url = home_url
+                when 'about', 'about-us', 'our-story'
+                  assign nav_url = story_url
+                when 'contact', 'contact-us'
+                  assign nav_url = contact_url
+              endcase
+              assign nav_path = nav_url | remove: 'https://catalinasfarm.com'
+            %}
+            <a href="{{ nav_url }}" {% if request.path == nav_path %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>
             {% for child in link.links %}<a class="cfh-child" href="{{ child.url }}">{{ child.title | escape }}</a>{% for grandchild in child.links %}<a class="cfh-grandchild" href="{{ grandchild.url }}">{{ grandchild.title | escape }}</a>{% endfor %}{% endfor %}
           {% endfor %}
-        {% else %}<a href="{{ routes.root_url }}">Home</a><a href="{{ story_url }}">Our Story</a><a href="{{ routes.all_products_collection_url }}">Shop</a><a href="{{ contact_url }}">Contact</a>{% endif %}
+        {% else %}<a href="{{ home_url }}">Home</a><a href="{{ story_url }}">Our Story</a><a href="{{ routes.all_products_collection_url }}">Shop</a><a href="{{ contact_url }}">Contact</a>{% endif %}
       </nav>
     </details>
-    <a href="{{ routes.root_url }}" class="cfh-logo" aria-label="{{ shop.name | escape }} — home">
+    <a href="{{ home_url }}" class="cfh-logo" aria-label="{{ shop.name | escape }} — home">
       <img src="https://cdn.shopify.com/s/files/1/0957/1775/3123/files/logocatalinas.png?v=1774644746" width="220" height="110" alt="{{ shop.name | escape }}" loading="eager">
     </a>
     <nav class="cfh-desktop" aria-label="Main navigation">
       {% if header_menu != blank %}
         {% for link in header_menu.links %}
-          {% if link.links != blank %}<details class="cfh-dropdown"><summary>{{ link.title | escape }} <span aria-hidden="true">⌄</span></summary><div class="cfh-submenu"><a href="{{ link.url }}">{{ link.title | escape }}</a>{% for child in link.links %}<a href="{{ child.url }}">{{ child.title | escape }}</a>{% for grandchild in child.links %}<a class="cfh-child" href="{{ grandchild.url }}">{{ grandchild.title | escape }}</a>{% endfor %}{% endfor %}</div></details>{% else %}<a href="{{ link.url }}" {% if link.current %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>{% endif %}
+            {% liquid
+              assign nav_url = link.url
+              assign nav_label = link.title | handleize
+              case nav_label
+                when 'home'
+                  assign nav_url = home_url
+                when 'about', 'about-us', 'our-story'
+                  assign nav_url = story_url
+                when 'contact', 'contact-us'
+                  assign nav_url = contact_url
+              endcase
+              assign nav_path = nav_url | remove: 'https://catalinasfarm.com'
+            %}
+          {% if link.links != blank %}<details class="cfh-dropdown"><summary>{{ link.title | escape }} <span aria-hidden="true">⌄</span></summary><div class="cfh-submenu"><a href="{{ nav_url }}">{{ link.title | escape }}</a>{% for child in link.links %}<a href="{{ child.url }}">{{ child.title | escape }}</a>{% for grandchild in child.links %}<a class="cfh-child" href="{{ grandchild.url }}">{{ grandchild.title | escape }}</a>{% endfor %}{% endfor %}</div></details>{% else %}<a href="{{ nav_url }}" {% if request.path == nav_path %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>{% endif %}
         {% endfor %}
-      {% else %}<a href="{{ routes.root_url }}">Home</a><a href="{{ story_url }}">Our Story</a><a href="{{ routes.all_products_collection_url }}">Shop</a><a href="{{ contact_url }}">Contact</a>{% endif %}
+      {% else %}<a href="{{ home_url }}">Home</a><a href="{{ story_url }}">Our Story</a><a href="{{ routes.all_products_collection_url }}">Shop</a><a href="{{ contact_url }}">Contact</a>{% endif %}
     </nav>
     <div class="cfh-actions">
       <a href="{{ routes.search_url }}" class="cfh-icon" data-cfh-search aria-label="Search" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 6 6"/></svg></a>
