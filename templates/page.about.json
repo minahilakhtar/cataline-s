@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "catalinas-farm-about",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
