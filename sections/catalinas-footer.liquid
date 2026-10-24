@@ -18,13 +18,11 @@
       >
         <img
           src="{{ 'logo-white.png' | asset_url }}"
-          width="180"
+          width="300"
           loading="lazy"
           alt="{{ shop.name | escape }}"
         >
       </a>
-
-      <p>{{ section.settings.description | escape | newline_to_br }}</p>
     </div>
 
     <nav class="cff-nav" aria-labelledby="cff-explore-{{ section.id }}">
@@ -184,7 +182,7 @@
 
   #cf-footer-{{ section.id }} .cff-logo {
     display: block;
-    width: 180px;
+    width: 300px;
     max-width: 100%;
   }
 
@@ -192,7 +190,7 @@
     display: block;
     width: 100%;
     height: auto;
-    max-height: 110px;
+    max-height: none;
     object-fit: contain;
     object-position: left;
     border: 0;
@@ -311,7 +309,7 @@
     }
 
     #cf-footer-{{ section.id }} .cff-logo {
-      width: 160px;
+      width: 240px;
     }
 
     #cf-footer-{{ section.id }} .cff-bottom {
@@ -325,12 +323,6 @@
 {
   "name": "Catalina’s Footer",
   "settings": [
-    {
-      "type": "textarea",
-      "id": "description",
-      "label": "Brand description",
-      "default": "Premium products.\nCarefully chosen."
-    },
     {
       "type": "link_list",
       "id": "explore_menu",

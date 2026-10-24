@@ -57,6 +57,27 @@
      margin-top: 0;
      margin-bottom: 16px;
   }
+
+  #shopify-section-{{ section.id }} .cf-shop-banner { margin:0 0 20px; }
+  #shopify-section-{{ section.id }} .cf-shop-banner-surface {
+    min-height:240px; display:flex; align-items:center;
+    padding:{{ section.settings.section_padding }};
+    background-color:#075844;
+    background-image:linear-gradient(90deg,rgba(2,37,27,.2),rgba(2,37,27,0)),var(--cf-banner-image);
+    background-size:cover; background-position:center; border-radius:16px; overflow:hidden;
+  }
+  #shopify-section-{{ section.id }} .cf-shop-banner .page-title {
+    background:transparent!important; padding:0!important; margin:0!important;
+    color:{{ section.settings.cf_banner_heading_color }}!important;
+    font-size:clamp(36px,4vw,58px);line-height:1.1;max-width:60%;
+    text-transform:none; font-weight:600;letter-spacing:-.025em;
+    text-shadow:0 2px 14px rgba(0,0,0,.16);
+  }
+  @media(max-width:749px){
+    #shopify-section-{{ section.id }} .cf-shop-banner-surface{min-height:190px;padding:28px 24px;background-position:60% center;border-radius:12px}
+    #shopify-section-{{ section.id }} .cf-shop-banner .page-title{font-size:34px;max-width:65%}
+  }
+
 {%- endstyle -%}
 
 <div class="section-{{ section.id }}-padding">
@@ -89,7 +110,17 @@
         <div class="main-wrap">
       {%- endif -%}
       {%- if section.settings.filter_type == 'vertical' -%}
-        {% render 'collection-page-header' %}
+        <div class="collection-page-header cf-shop-banner">
+          {% liquid
+            assign cf_banner_image = 'cf-shop-tea-banner.webp' | asset_url
+            if section.settings.cf_banner_image != blank
+              assign cf_banner_image = section.settings.cf_banner_image | image_url: width: 2200
+            endif
+          %}
+          <div class="cf-shop-banner-surface" style="--cf-banner-image:url('{{ cf_banner_image | escape }}');">
+            <h1 class="page-title">{{ collection.title | escape }}</h1>
+          </div>
+        </div>
       {%- endif -%}
 
       {% comment %} Sort is the first tabbable element when filter type is vertical {% endcomment %}
@@ -266,6 +297,18 @@
     {
       "type": "header",
       "content": "t:sections.product-collection-grid.settings.page_header.content"
+    },
+    {
+      "type": "image_picker",
+      "id": "cf_banner_image",
+      "label": "Shop banner image",
+      "info": "Leave empty to use the included herbal tea banner."
+    },
+    {
+      "type": "color",
+      "id": "cf_banner_heading_color",
+      "label": "Shop banner heading color",
+      "default": "#ffffff"
     },
     {
       "type": "color",
