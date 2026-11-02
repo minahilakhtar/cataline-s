@@ -1,1 +1,46 @@
-{"sections":{"main-cart":{"type":"main-cart","settings":{"show_banner":true,"banner_text":"You've got FREE delivery. Start checkout now!","banner_link":"","banner_bg":"#fdecea","banner_text_color":"#555555","banner_border_color":"#f5c0bc","banner_link_color":"#1a1a1a","banner_radius":7,"continue_button_text":"Continue Shopping","checkout_button_text":"Go to Checkout","button_bg":"#0aad0a","button_bg_hover":"#099309","button_text_color":"#ffffff","button_radius":6,"terms_text_color":"#aaaaaa","terms_link_color":"#0aad0a","terms_prefix_text":"By placing your order, you agree to our","terms_link_text":"Terms of Service","terms_link":"\/pages\/terms-of-service","terms_middle_text":"and","privacy_link_text":"Privacy Policy","privacy_link":"\/pages\/privacy-policy-page","terms_suffix_text":".","show_service_fee":true,"service_fee_amount":300}}},"order":["main-cart"]}
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main-cart": {
+      "type": "main-cart",
+      "settings": {
+        "show_banner": true,
+        "banner_text": "You've got FREE delivery. Start checkout now!",
+        "banner_link": "",
+        "banner_bg": "#fdecea",
+        "banner_text_color": "#555555",
+        "banner_border_color": "#f5c0bc",
+        "banner_link_color": "#1a1a1a",
+        "banner_radius": 7,
+        "continue_button_text": "Continue Shopping",
+        "checkout_button_text": "Go to Checkout",
+        "button_bg": "#0F5346",
+        "button_bg_hover": "#0B4137",
+        "button_text_color": "#ffffff",
+        "button_radius": 6,
+        "terms_text_color": "#aaaaaa",
+        "terms_link_color": "#0F5346",
+        "terms_prefix_text": "By placing your order, you agree to our",
+        "terms_link_text": "Terms of Service",
+        "terms_link": "/pages/terms-of-service",
+        "terms_middle_text": "and",
+        "privacy_link_text": "Privacy Policy",
+        "privacy_link": "/pages/privacy-policy-page",
+        "terms_suffix_text": ".",
+        "show_service_fee": true,
+        "service_fee_amount": 300
+      }
+    }
+  },
+  "order": [
+    "main-cart"
+  ]
+}
