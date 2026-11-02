@@ -1,0 +1,33 @@
+/* The native banner remains the fallback until our consent API integration is ready. */
+html.cf-cookie-ready #shopify-pc__banner { display:none!important; }
+#cf-cookie-consent { font-family:var(--font-body-family,Arial,sans-serif);font-size:16px;line-height:1.5;color:#34423c; }
+#cf-cookie-consent [hidden],#cf-cookie-consent[hidden]{display:none!important}
+#cf-cookie-consent *,#cf-cookie-consent *::before,#cf-cookie-consent *::after{box-sizing:border-box}
+#cf-cookie-consent button{font:600 16px/1.3 var(--font-body-family,Arial,sans-serif);letter-spacing:0;text-transform:none;cursor:pointer;border:1px solid #075844;border-radius:8px;background:#075844;color:#fff;min-height:48px;padding:13px 26px;box-shadow:none;appearance:none}
+#cf-cookie-consent button:hover{background:#034235;border-color:#034235}
+#cf-cookie-consent button:disabled{cursor:wait;opacity:.65}
+#cf-cookie-consent button:focus-visible,#cf-cookie-consent a:focus-visible,#cf-cookie-consent input:focus-visible{outline:3px solid #c85c3b;outline-offset:4px}
+#cf-cookie-consent a{color:#075844;text-decoration:underline;text-underline-offset:3px}
+#cf-cookie-consent .cf-cookie-outline{color:#075844;background:#fff}
+#cf-cookie-consent .cf-cookie-outline:hover{background:#f0f4ec}
+#cf-cookie-consent .cf-cookie-bar{position:fixed;inset:auto 0 0;z-index:2147483000;width:100%;padding:22px clamp(20px,3vw,56px) 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #07584420;box-shadow:0 -5px 28px #153b2912;max-height:70vh;overflow:auto}
+#cf-cookie-consent .cf-cookie-bar>p:first-child{margin:0 0 18px;font-size:clamp(15px,1.3vw,19px);line-height:1.55;max-width:1500px}
+#cf-cookie-consent .cf-cookie-actions{display:flex;gap:14px;flex-wrap:wrap}
+#cf-cookie-consent .cf-cookie-actions button{min-width:170px}
+#cf-cookie-consent .cf-cookie-status{margin:10px 0 0;font-size:14px;line-height:1.4;color:#a23926}
+#cf-cookie-consent .cf-cookie-status:empty{display:none}
+#cf-cookie-consent .cf-cookie-reopen{position:fixed;bottom:12px;left:12px;z-index:2147482999;padding:8px 13px;min-height:38px;font-size:12px;border-radius:20px;background:#fff;color:#075844;box-shadow:0 2px 12px #07584416}
+#cf-cookie-consent .cf-cookie-dialog{position:fixed;inset:0;margin:auto;width:calc(100% - 32px);max-width:590px;max-height:85vh;max-height:85dvh;overflow:auto;border:1px solid #07584430;border-radius:20px;padding:26px;background:#fff;color:#34423c;font:inherit;box-shadow:0 24px 70px #12382b40}
+#cf-cookie-consent .cf-cookie-dialog:not([open]){display:none}
+#cf-cookie-consent .cf-cookie-dialog::backdrop{background:#092c225e}
+#cf-cookie-consent .cf-cookie-modal-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+#cf-cookie-consent h2{font:600 25px/1.2 var(--font-body-family,Arial,sans-serif);letter-spacing:-.03em;text-transform:none;color:#075844;margin:0}
+#cf-cookie-consent #cf-cookie-description{margin:0 0 20px;font-size:14px;line-height:1.6}
+#cf-cookie-consent .cf-cookie-close{min-width:40px;min-height:40px;padding:0;border-radius:50%;background:#f0f4ec;color:#075844;font-size:25px;flex-shrink:0}
+#cf-cookie-consent .cf-cookie-option{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:17px 0;border-top:1px solid #07584420;text-align:left;cursor:pointer}
+#cf-cookie-consent .cf-cookie-option strong{font-size:15px;font-weight:600;color:#075844}
+#cf-cookie-consent .cf-cookie-option p,#cf-cookie-consent .cf-cookie-detail{display:block;font-size:13px;line-height:1.5;margin:5px 0 0;color:#5b695f}
+#cf-cookie-consent .cf-cookie-required{font-size:12px;color:#075844;white-space:nowrap}
+#cf-cookie-consent input[type=checkbox]{appearance:auto;width:21px;height:21px;min-width:21px;accent-color:#075844;margin:0;cursor:pointer}
+#cf-cookie-consent .cf-cookie-modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap}
+@media(max-width:600px){#cf-cookie-consent .cf-cookie-bar{padding:18px 18px max(18px,env(safe-area-inset-bottom))}#cf-cookie-consent .cf-cookie-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#cf-cookie-consent .cf-cookie-actions button{min-width:0;width:100%;font-size:14px;padding:12px 10px}#cf-cookie-consent .cf-cookie-dialog{padding:22px 18px}#cf-cookie-consent h2{font-size:22px}#cf-cookie-consent .cf-cookie-modal-actions button{flex:1;font-size:14px;padding:12px}#cf-cookie-consent .cf-cookie-option{gap:14px}}

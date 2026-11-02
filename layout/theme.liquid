@@ -554,5 +554,8 @@
     {%- if settings.cart_type == 'drawer' -%}
       {%- section 'cart-drawer' -%}
     {%- endif -%}
+    {% unless request.page_type == 'password' %}
+      {% render 'catalinas-cookie-banner' %}
+    {% endunless %}
   </body>
 </html>
