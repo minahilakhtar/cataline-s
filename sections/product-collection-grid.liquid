@@ -1,3 +1,36 @@
+{% liquid
+  assign cf_sidebar_menu = section.settings.cf_sidebar_menu
+%}
+{% capture cf_sidebar_menu_content %}
+  {% if cf_sidebar_menu != blank and cf_sidebar_menu.links.size > 0 %}
+    <nav class="cf-collection-menu" aria-label="{{ section.settings.cf_sidebar_menu_heading | escape }}">
+      <h2 class="cf-collection-menu__heading">{{ section.settings.cf_sidebar_menu_heading | escape }}</h2>
+      <ul class="cf-collection-menu__list" role="list">
+        {% for menu_link in cf_sidebar_menu.links %}
+          <li>
+            <a href="{{ menu_link.url | escape }}"{% if menu_link.current %} aria-current="page"{% endif %} class="cf-collection-menu__link{% if menu_link.active %} is-active{% endif %}">{{ menu_link.title | escape }}</a>
+            {% if menu_link.links.size > 0 %}
+              <ul class="cf-collection-menu__children" role="list">
+                {% for child_link in menu_link.links %}
+                  <li>
+                    <a href="{{ child_link.url | escape }}"{% if child_link.current %} aria-current="page"{% endif %} class="cf-collection-menu__link{% if child_link.active %} is-active{% endif %}">{{ child_link.title | escape }}</a>
+                    {% if child_link.links.size > 0 %}
+                      <ul class="cf-collection-menu__children" role="list">
+                        {% for grandchild_link in child_link.links %}
+                          <li><a href="{{ grandchild_link.url | escape }}"{% if grandchild_link.current %} aria-current="page"{% endif %} class="cf-collection-menu__link{% if grandchild_link.active %} is-active{% endif %}">{{ grandchild_link.title | escape }}</a></li>
+                        {% endfor %}
+                      </ul>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+{% endcapture %}
 <link
   rel="stylesheet"
   href="{{ 'template-collection.css' | asset_url }}"
@@ -78,16 +111,40 @@
     #shopify-section-{{ section.id }} .cf-shop-banner .page-title{font-size:34px;max-width:65%}
   }
 
+
+  /* Navigation links from the selected Shopify menu, separate from facet filtering. */
+  #shopify-section-{{ section.id }} .cf-collection-menu{padding:20px 0;border-top:1px solid #07584426;margin:18px 0 20px;color:#075844}
+  #shopify-section-{{ section.id }} .cf-collection-menu__heading{margin:0 0 12px;font-size:20px;line-height:1.3;font-weight:600;letter-spacing:0;text-transform:none}
+  #shopify-section-{{ section.id }} .cf-collection-menu__list,#shopify-section-{{ section.id }} .cf-collection-menu__children{list-style:none;margin:0;padding:0}
+  #shopify-section-{{ section.id }} .cf-collection-menu__children{margin-left:15px;padding-left:12px;border-left:1px solid #07584426}
+  #shopify-section-{{ section.id }} .cf-collection-menu__link{display:block;padding:10px 12px;margin:3px 0;min-height:44px;border-radius:8px;font:inherit;line-height:1.5;text-decoration:none;color:#536a52;overflow-wrap:anywhere}
+  #shopify-section-{{ section.id }} .cf-collection-menu__link:hover,#shopify-section-{{ section.id }} .cf-collection-menu__link.is-active{color:#075844;background:#f0f4ec}
+  #shopify-section-{{ section.id }} .cf-collection-menu__link[aria-current=page]{font-weight:600}
+  #shopify-section-{{ section.id }} .cf-collection-menu__link:focus-visible{outline:2px solid #075844;outline-offset:2px}
+  #shopify-section-{{ section.id }} .cf-collection-menu-mobile{display:none}
+  #shopify-section-{{ section.id }} .cf-collection-menu-mobile--all{display:block}
+  @media(max-width:989px){
+    #shopify-section-{{ section.id }} .cf-collection-menu-desktop{display:none}
+    #shopify-section-{{ section.id }} .cf-collection-menu-mobile{display:block}
+    #shopify-section-{{ section.id }} .cf-collection-menu-mobile .cf-collection-menu{margin:0 0 20px;padding:16px 0;border-top:0;border-bottom:1px solid #07584426}
+    #shopify-section-{{ section.id }} .cf-collection-menu-mobile .cf-collection-menu__list{display:flex;flex-wrap:wrap;gap:8px 12px}
+    #shopify-section-{{ section.id }} .cf-collection-menu-mobile .cf-collection-menu__list>li{min-width:0}
+    #shopify-section-{{ section.id }} .cf-collection-menu-mobile .cf-collection-menu__link{border:1px solid #07584426;margin:0;padding:10px 14px}
+  }
+
 {%- endstyle -%}
 
 <div class="section-{{ section.id }}-padding">
   {% render 'breadcrumbs' %}
 
   {%- paginate collection.products by section.settings.products_per_page -%}
+    {% if cf_sidebar_menu != blank and cf_sidebar_menu.links.size > 0 %}
+      <div class="cf-collection-menu-mobile page-width{% if section.settings.filter_type != 'vertical' %} cf-collection-menu-mobile--all{% endif %}">{{ cf_sidebar_menu_content }}</div>
+    {% endif %}
     <div class="{% if section.settings.filter_type == 'vertical' %} facets-vertical page-width{% endif %}{% if section.settings.filter_type == 'horizontal' %}facets-horizontal{% endif %}">
       {{ 'component-facets.css' | asset_url | stylesheet_tag }}
       <script src="{{ 'facets.js' | asset_url }}" defer="defer"></script>
-      {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+      {%- if section.settings.enable_filtering or section.settings.enable_sorting or cf_sidebar_menu != blank -%}
         <aside
           aria-labelledby="verticalTitle"
           class="facets-wrapper{% unless section.settings.enable_filtering %} facets-wrapper--no-filters{% endunless %}{% if section.settings.filter_type != 'vertical' %} page-width{% endif %}"
@@ -103,6 +160,9 @@
             open_group: section.settings.open_group,
             paginate: paginate
           %}
+          {% if section.settings.filter_type == 'vertical' %}
+            <div class="cf-collection-menu-desktop">{{ cf_sidebar_menu_content }}</div>
+          {% endif %}
         </aside>
       {%- endif -%}
 
@@ -294,6 +354,22 @@
   "name": "t:sections.product-collection-grid.name",
   "class": "section",
   "settings": [
+    {
+      "type": "header",
+      "content": "Sidebar navigation menu"
+    },
+    {
+      "type": "link_list",
+      "id": "cf_sidebar_menu",
+      "label": "Sidebar menu",
+      "info": "Choose your new brands menu. Links navigate to their configured pages or collections."
+    },
+    {
+      "type": "text",
+      "id": "cf_sidebar_menu_heading",
+      "label": "Menu heading",
+      "default": "Brands"
+    },
     {
       "type": "header",
       "content": "t:sections.product-collection-grid.settings.page_header.content"
