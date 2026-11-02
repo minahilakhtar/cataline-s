@@ -1,0 +1,179 @@
+<style>
+/* The native banner remains the fallback until our consent API integration is ready. */
+html.cf-cookie-ready #shopify-pc__banner { display:none!important; }
+#cf-cookie-consent { font-family:var(--font-body-family,Arial,sans-serif);font-size:16px;line-height:1.5;color:#34423c; }
+#cf-cookie-consent [hidden],#cf-cookie-consent[hidden]{display:none!important}
+#cf-cookie-consent *,#cf-cookie-consent *::before,#cf-cookie-consent *::after{box-sizing:border-box}
+#cf-cookie-consent button{font:600 16px/1.3 var(--font-body-family,Arial,sans-serif);letter-spacing:0;text-transform:none;cursor:pointer;border:1px solid #075844;border-radius:8px;background:#075844;color:#fff;min-height:48px;padding:13px 26px;box-shadow:none;appearance:none}
+#cf-cookie-consent button:hover{background:#034235;border-color:#034235}
+#cf-cookie-consent button:disabled{cursor:wait;opacity:.65}
+#cf-cookie-consent button:focus-visible,#cf-cookie-consent a:focus-visible,#cf-cookie-consent input:focus-visible{outline:3px solid #c85c3b;outline-offset:4px}
+#cf-cookie-consent a{color:#075844;text-decoration:underline;text-underline-offset:3px}
+#cf-cookie-consent .cf-cookie-outline{color:#075844;background:#fff}
+#cf-cookie-consent .cf-cookie-outline:hover{background:#f0f4ec}
+#cf-cookie-consent .cf-cookie-bar{position:fixed;inset:auto 0 0;z-index:2147483000;width:100%;padding:22px clamp(20px,3vw,56px) 24px;padding-bottom:max(24px,env(safe-area-inset-bottom));background:#fff;border-top:1px solid #07584420;box-shadow:0 -5px 28px #153b2912;max-height:70vh;overflow:auto}
+#cf-cookie-consent .cf-cookie-bar>p:first-child{margin:0 0 18px;font-size:clamp(15px,1.3vw,19px);line-height:1.55;max-width:1500px}
+#cf-cookie-consent .cf-cookie-actions{display:flex;gap:14px;flex-wrap:wrap}
+#cf-cookie-consent .cf-cookie-actions button{min-width:170px}
+#cf-cookie-consent .cf-cookie-status{margin:10px 0 0;font-size:14px;line-height:1.4;color:#a23926}
+#cf-cookie-consent .cf-cookie-status:empty{display:none}
+#cf-cookie-consent .cf-cookie-reopen{position:fixed;bottom:12px;left:12px;z-index:2147482999;padding:8px 13px;min-height:38px;font-size:12px;border-radius:20px;background:#fff;color:#075844;box-shadow:0 2px 12px #07584416}
+#cf-cookie-consent .cf-cookie-dialog{position:fixed;inset:0;margin:auto;width:calc(100% - 32px);max-width:590px;max-height:85vh;max-height:85dvh;overflow:auto;border:1px solid #07584430;border-radius:20px;padding:26px;background:#fff;color:#34423c;font:inherit;box-shadow:0 24px 70px #12382b40}
+#cf-cookie-consent .cf-cookie-dialog:not([open]){display:none}
+#cf-cookie-consent .cf-cookie-dialog::backdrop{background:#092c225e}
+#cf-cookie-consent .cf-cookie-modal-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}
+#cf-cookie-consent h2{font:600 25px/1.2 var(--font-body-family,Arial,sans-serif);letter-spacing:-.03em;text-transform:none;color:#075844;margin:0}
+#cf-cookie-consent #cf-cookie-description{margin:0 0 20px;font-size:14px;line-height:1.6}
+#cf-cookie-consent .cf-cookie-close{min-width:40px;min-height:40px;padding:0;border-radius:50%;background:#f0f4ec;color:#075844;font-size:25px;flex-shrink:0}
+#cf-cookie-consent .cf-cookie-option{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:17px 0;border-top:1px solid #07584420;text-align:left;cursor:pointer}
+#cf-cookie-consent .cf-cookie-option strong{font-size:15px;font-weight:600;color:#075844}
+#cf-cookie-consent .cf-cookie-option p,#cf-cookie-consent .cf-cookie-detail{display:block;font-size:13px;line-height:1.5;margin:5px 0 0;color:#5b695f}
+#cf-cookie-consent .cf-cookie-required{font-size:12px;color:#075844;white-space:nowrap}
+#cf-cookie-consent input[type=checkbox]{appearance:auto;width:21px;height:21px;min-width:21px;accent-color:#075844;margin:0;cursor:pointer}
+#cf-cookie-consent .cf-cookie-modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px;flex-wrap:wrap}
+@media(max-width:600px){#cf-cookie-consent .cf-cookie-bar{padding:18px 18px max(18px,env(safe-area-inset-bottom))}#cf-cookie-consent .cf-cookie-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#cf-cookie-consent .cf-cookie-actions button{min-width:0;width:100%;font-size:14px;padding:12px 10px}#cf-cookie-consent .cf-cookie-dialog{padding:22px 18px}#cf-cookie-consent h2{font-size:22px}#cf-cookie-consent .cf-cookie-modal-actions button{flex:1;font-size:14px;padding:12px}#cf-cookie-consent .cf-cookie-option{gap:14px}}
+
+</style>
+<div id="cf-cookie-consent" hidden>
+  <aside class="cf-cookie-bar" aria-label="Cookie consent" aria-describedby="cf-cookie-copy" hidden>
+    <p id="cf-cookie-copy">We use cookies to improve your experience, personalize content, and understand how you use our store. You can change your choice at any time. <a href="{{ shop.privacy_policy.url | default: '/policies/privacy-policy' }}">Privacy Policy</a></p>
+    <div class="cf-cookie-actions">
+      <button type="button" data-cf-cookie-action="accept">Accept All</button>
+      <button type="button" data-cf-cookie-action="essential">Only Essential</button>
+      <button type="button" class="cf-cookie-outline" data-cf-cookie-action="preferences">Preferences</button>
+      <button type="button" data-cf-cookie-action="decline">Decline</button>
+    </div>
+    <p class="cf-cookie-status" role="status" aria-live="polite"></p>
+  </aside>
+  <button type="button" class="cf-cookie-reopen" data-cf-cookie-action="preferences" hidden>Cookie settings</button>
+  <dialog class="cf-cookie-dialog" aria-labelledby="cf-cookie-title" aria-describedby="cf-cookie-description">
+    <div class="cf-cookie-modal-head"><h2 id="cf-cookie-title">Your cookie preferences</h2><button type="button" class="cf-cookie-close" aria-label="Close cookie preferences" data-cf-cookie-close>×</button></div>
+    <p id="cf-cookie-description">Choose which optional cookies you allow. Essential cookies keep the store, shopping cart, and checkout working and are always active.</p>
+    <form class="cf-cookie-form">
+      <div class="cf-cookie-option"><div><strong>Essential</strong><p>Required for security and core store functionality.</p></div><span class="cf-cookie-required">Always active</span></div>
+      <label class="cf-cookie-option"><span><strong>Preferences</strong><span class="cf-cookie-detail">Remember choices such as your language or region.</span></span><input type="checkbox" name="preferences"></label>
+      <label class="cf-cookie-option"><span><strong>Analytics</strong><span class="cf-cookie-detail">Help us understand visits and improve the store.</span></span><input type="checkbox" name="analytics"></label>
+      <label class="cf-cookie-option"><span><strong>Marketing</strong><span class="cf-cookie-detail">Support personalized advertising and measure campaigns.</span></span><input type="checkbox" name="marketing"></label>
+      <label class="cf-cookie-option" data-cf-sale-option hidden><span><strong>Do not sell or share my personal information</strong><span class="cf-cookie-detail">Opt out of sharing for targeted advertising. Global Privacy Control is respected by Shopify.</span></span><input type="checkbox" name="sale_opt_out"></label>
+      <p class="cf-cookie-status" role="status" aria-live="polite"></p>
+      <div class="cf-cookie-modal-actions"><button type="button" class="cf-cookie-outline" data-cf-cookie-action="essential">Only Essential</button><button type="submit">Save preferences</button></div>
+    </form>
+  </dialog>
+</div>
+<script>
+(() => {
+  'use strict';
+  const root = document.getElementById('cf-cookie-consent');
+  if (!root || root.dataset.initialized) return;
+  root.dataset.initialized = 'true';
+  const bar = root.querySelector('.cf-cookie-bar');
+  const reopen = root.querySelector('.cf-cookie-reopen');
+  const dialog = root.querySelector('dialog');
+  const form = root.querySelector('form');
+  const categories = ['preferences', 'analytics', 'marketing'];
+  let api, busy = false, previousFocus, attempt = 0;
+  const consent = () => api.currentVisitorConsent();
+  const hasDecision = value => categories.every(key => value[key] === 'yes' || value[key] === 'no');
+  function visibility() {
+    const value = consent();
+    bar.hidden = hasDecision(value) || !api.shouldShowBanner();
+    reopen.hidden = !bar.hidden;
+  }
+  function status(message) {
+    root.querySelectorAll('.cf-cookie-status').forEach(node => { node.textContent = message; });
+  }
+  function setBusy(value) {
+    busy = value;
+    root.querySelectorAll('button').forEach(button => { button.disabled = value; });
+    form.setAttribute('aria-busy', String(value));
+  }
+  function closePreferences() {
+    if (dialog.open) dialog.close();
+  }
+  function openPreferences() {
+    if (busy || !api) return;
+    status('');
+    const value = consent();
+    categories.forEach(key => { form.elements[key].checked = value[key] === 'yes'; });
+    const optOut = root.querySelector('[data-cf-sale-option]');
+    optOut.hidden = !(typeof api.saleOfDataRegion === 'function' && api.saleOfDataRegion());
+    form.elements.sale_opt_out.checked = value.sale_of_data === 'no';
+    form.elements.sale_opt_out.disabled = value.sale_of_data === 'no';
+    previousFocus = document.activeElement;
+    if (!dialog.open) dialog.showModal();
+  }
+  function save(values) {
+    if (busy || !api) return;
+    status('');
+    setBusy(true);
+    // No consent is inferred or stored locally. Shopify remains the source of truth.
+    let settled = false;
+    const timeout = window.setTimeout(() => finish(new Error('timeout')), 10000);
+    function finish(error) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      setBusy(false);
+      if (error) {
+        status('Your choice could not be saved. Please try again.');
+        return;
+      }
+      const current = consent();
+      if (categories.some(key => current[key] !== (values[key] ? 'yes' : 'no'))) {
+        status('Your choice could not be confirmed. Please try again.');
+        return;
+      }
+      closePreferences();
+      visibility();
+      if (bar.hidden) reopen.focus({ preventScroll: true });
+    }
+    try {
+      api.setTrackingConsent(values, result => finish(result && result.error));
+    } catch (error) { finish(error); }
+  }
+  function ready() {
+    api = window.Shopify && window.Shopify.customerPrivacy;
+    if (!api || typeof api.setTrackingConsent !== 'function' || typeof api.currentVisitorConsent !== 'function' || typeof api.shouldShowBanner !== 'function' || typeof dialog.showModal !== 'function') return;
+    try {
+      visibility();
+      root.hidden = false;
+      // Suppress only the standard banner after the replacement is functional.
+      document.documentElement.classList.add('cf-cookie-ready');
+    } catch (error) { root.hidden = true; return; }
+    root.addEventListener('click', event => {
+      const button = event.target.closest('[data-cf-cookie-action]');
+      if (!button || busy) return;
+      const action = button.dataset.cfCookieAction;
+      if (action === 'preferences') { openPreferences(); return; }
+      const allow = action === 'accept';
+      save({ preferences: allow, analytics: allow, marketing: allow });
+    });
+    root.querySelector('[data-cf-cookie-close]').addEventListener('click', closePreferences);
+    dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
+    dialog.addEventListener('close', () => {
+      if (previousFocus && previousFocus.isConnected && !previousFocus.closest('[hidden]')) previousFocus.focus({ preventScroll: true });
+    });
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const values = Object.fromEntries(categories.map(key => [key, form.elements[key].checked]));
+      // Data sale/sharing is a separate opt-out. Never enable it through Accept All.
+      if (!root.querySelector('[data-cf-sale-option]').hidden && form.elements.sale_opt_out.checked) values.sale_of_data = false;
+      save(values);
+    });
+    document.addEventListener('visitorConsentCollected', () => { if (!busy) visibility(); });
+    window.addEventListener('pageshow', () => { if (!busy) visibility(); });
+  }
+  function load() {
+    const current = window.Shopify && window.Shopify.customerPrivacy;
+    if (current && ['setTrackingConsent', 'currentVisitorConsent', 'shouldShowBanner'].every(key => typeof current[key] === 'function')) { ready(); return; }
+    if (window.Shopify && typeof window.Shopify.loadFeatures === 'function') {
+      window.Shopify.loadFeatures([{ name: 'consent-tracking-api', version: '0.2' }], error => { if (!error) ready(); });
+      return;
+    }
+    if (++attempt < 40) window.setTimeout(load, 250);
+    // On load failure the original Shopify banner remains available.
+  }
+  load();
+})();
+
+</script>
