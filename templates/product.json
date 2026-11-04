@@ -123,12 +123,13 @@
           "type": "product_category",
           "settings": {
             "enable_product_category": true,
-            "text_style": "all_categories",
+            "text_style": "first_category",
             "prod_category": "Categories"
           }
         },
         "product_tag_NPrik4": {
           "type": "product_tag",
+          "disabled": true,
           "settings": {
             "enable_product_tag": true,
             "tag": "Tags"
