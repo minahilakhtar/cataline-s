@@ -90,6 +90,18 @@ html,body { margin:0!important; padding:0!important; width:100%; }
 #CFContact-{{ section.id }} svg path, #CFContact-{{ section.id }} svg circle,
 #CFContact-{{ section.id }} svg rect, #CFContact-{{ section.id }} svg line,
 #CFContact-{{ section.id }} svg polyline { stroke:inherit; stroke-width:inherit; fill:inherit; }
+
+/* Contact page: white button outlines on hover (replaces orange). */
+#CFContact-{{ section.id }} .button:hover,
+#CFContact-{{ section.id }} .button:focus-visible,
+#CFContact-{{ section.id }} button:hover,
+#CFContact-{{ section.id }} input[type="submit"]:hover {
+  border-color: #ffffff !important;
+}
+#CFContact-{{ section.id }} .button:hover::after,
+#CFContact-{{ section.id }} button:hover::after {
+  border-color: #ffffff !important;
+}
 </style>
 {% assign contact_form_id = 'cf-contact-form-' | append: section.id %}
 {% assign newsletter_id = 'cf-newsletter-' | append: section.id %}
