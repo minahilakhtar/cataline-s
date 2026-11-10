@@ -40,6 +40,14 @@ main#MainContent {
 @media (min-width: 1200px) {
   #CFAbout-{{ section.id }} .about-values-layout { grid-template-columns:minmax(0,1.06fr) minmax(0,1fr); gap:42px; }
 }
+
+/* Value cards: matching underline hover and pointer cursor */
+#CFAbout-{{ section.id }} .about-values-content .about-value,
+#CFAbout-{{ section.id }} .about-value { cursor:pointer; }
+#CFAbout-{{ section.id }} .about-value:hover:after,
+#CFAbout-{{ section.id }} .about-value:focus-visible:after,
+#CFAbout-{{ section.id }} .about-value.is-highlighted:after { transform:scaleX(1); }
+#CFAbout-{{ section.id }} .about-value:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
 </style>
 
 {% assign newsletter_id = 'cf-newsletter-' | append: section.id %}
@@ -53,7 +61,7 @@ main#MainContent {
     <p>Today, Catalina’s Farm is a place to discover products that bring more goodness, joy, and warmth to your daily routine. From your favorite snacks to the essentials you reach for every day, we believe feeling good shouldn’t be complicated or expensive.</p>
   </div>
   <blockquote class="cf-country-quote">You don’t have to live in the countryside to enjoy a little country happiness.</blockquote>
-  <div class="cf-country-welcome"><p>Welcome to Catalina’s Farm.<br><em>Make yourself at home.</em></p><a class="button" href="{{ section.settings.shop_link | default: routes.all_products_collection_url }}">Explore our products <span aria-hidden="true">↗</span></a></div>
+  <div class="cf-country-welcome"><p>Welcome to Catalina’s Farm.<br><em>Make yourself at home.</em></p><a class="button" href="{{ section.settings.shop_link | default: routes.all_products_collection_url }}">Explore our products</a></div>
 </div></section><section class="newsletter" data-cf-id="contact" id="cf-{{ section.id }}-contact" aria-labelledby="cf-{{ section.id }}-newsletter-title"><div><div class="eyebrow">LET’S STAY CLOSE</div><h2 data-cf-id="newsletter-title" id="cf-{{ section.id }}-newsletter-title">A little goodness.<br><em>Straight to your inbox.</em></h2><p>Discover thoughtful finds and news from Catalina’s Farm.</p></div><div class="botanical" aria-hidden="true"><svg viewBox="0 0 150 230" aria-hidden="true"><path d="M73 222C79 168 70 110 88 16M77 178C24 173 13 137 18 117c42-3 66 26 59 61ZM77 142c48-6 67-36 61-61-36-1-65 25-61 61ZM78 103C34 98 26 65 31 47c33 0 51 24 47 56ZM85 66c31-4 45-24 41-46-27 1-41 19-41 46Z"/></svg></div><div class="newsletter-form-wrap">
 {% form 'customer', id: newsletter_id, class: 'cf-newsletter-form' %}
   <input type="hidden" name="contact[tags]" value="newsletter">
