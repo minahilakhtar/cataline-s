@@ -13,7 +13,7 @@
       "type": "product-collection-grid",
       "settings": {
         "cf_sidebar_menu": "new-brands",
-        "cf_sidebar_menu_heading": "Brands",
+        "cf_sidebar_menu_heading": "Categories",
         "cf_banner_heading_color": "#ffffff",
         "banner_bg": "#f0f3f2",
         "banner_text_color": "#5c6c75",
