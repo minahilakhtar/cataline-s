@@ -71,6 +71,7 @@
         },
         "collapsible-row-0": {
           "type": "collapsible_tab",
+          "disabled": true,
           "settings": {
             "heading": "Ingredients",
             "heading_size": "15",
@@ -175,6 +176,7 @@
       "blocks": {
         "tab_mqwb4k": {
           "type": "tab",
+          "disabled": true,
           "settings": {
             "title": "More Information",
             "content": ""
