@@ -72,11 +72,13 @@
                 --sc-banner-link: {{ section.settings.banner_link_color }};
               "
             >
-              {%- if section.settings.banner_link != blank -%}
-                <a href="{{ section.settings.banner_link }}">{{ section.settings.banner_text }}</a>
-              {%- else -%}
-                {{ section.settings.banner_text }}
-              {%- endif -%}
+              <span data-shipping-banner-message>
+                {%- if cart.total_price >= 5000 -%}
+                  You've got FREE delivery. Start checkout now!
+                {%- else -%}
+                  You're {{ 5000 | minus: cart.total_price | money }} away from FREE delivery on orders $50 and up.
+                {%- endif -%}
+              </span>
             </div>
           {%- endif -%}
 
@@ -195,7 +197,7 @@
 
         {%- comment -%}——— RIGHT COLUMN: summary ———{%- endcomment -%}
         <aside id="main-cart-footer" data-id="{{ section.id }}" aria-label="Order summary">
-          <div class="sc-summary" data-service-fee="{{ section.settings.show_service_fee | json }}" data-service-fee-cents="{{ section.settings.service_fee_amount }}">
+          <div class="sc-summary">
             <h2 class="sc-summary__title">Summary</h2>
 
             {%- if cart.cart_level_discount_applications.size > 0 -%}
@@ -211,21 +213,9 @@
               <span data-item-subtotal>{{ cart.items_subtotal_price | money }}</span>
             </div>
 
-            {%- if section.settings.show_service_fee and section.settings.service_fee_amount > 0 -%}
-              <div class="sc-summary__line">
-                <span>Service Fee</span>
-                <span>{{ section.settings.service_fee_amount | money }}</span>
-              </div>
-            {%- endif -%}
-
             <hr class="sc-summary__divider">
 
-            {%- comment -%} Subtotal = Shopify total + service fee (if enabled) {%- endcomment -%}
-            {%- if section.settings.show_service_fee and section.settings.service_fee_amount > 0 -%}
-              {%- assign display_total = cart.total_price | plus: section.settings.service_fee_amount -%}
-            {%- else -%}
-              {%- assign display_total = cart.total_price -%}
-            {%- endif -%}
+            {%- assign display_total = cart.total_price -%}
 
             <div class="sc-summary__total">
               <span>Subtotal</span>
@@ -318,23 +308,6 @@
         .replace(/\{\{amount_no_decimals_with_comma_separator\}\}/g, amountNoDecimalsComma);
     }
 
-    function scGetServiceFee() {
-      var summary = document.querySelector('[data-service-fee]');
-
-      if (!summary) {
-        return 0;
-      }
-
-      var enabled = summary.getAttribute('data-service-fee') === 'true';
-
-      if (!enabled) {
-        return 0;
-      }
-
-      var cents = parseInt(summary.getAttribute('data-service-fee-cents'), 10);
-      return isNaN(cents) ? 0 : cents;
-    }
-
     function scItemsSubtotal(items) {
       return (items || []).reduce(function (total, item) {
         var linePrice = parseInt(item.final_line_price, 10);
@@ -343,8 +316,6 @@
     }
 
     function scApplyCart(cartData) {
-      var fee = scGetServiceFee();
-
       var itemsTotal = cartData.items_subtotal_price != null
         ? parseInt(cartData.items_subtotal_price, 10)
         : scItemsSubtotal(cartData.items);
@@ -359,7 +330,12 @@
 
       if (!isNaN(shopifyTotal)) {
         document.querySelectorAll('[data-cart-total]').forEach(function (el) {
-          el.textContent = scMoney(shopifyTotal + fee);
+          el.textContent = scMoney(shopifyTotal);
+        });
+        document.querySelectorAll('[data-shipping-banner-message]').forEach(function (el) {
+          el.textContent = shopifyTotal >= 5000
+            ? "You've got FREE delivery. Start checkout now!"
+            : "You're " + scMoney(5000 - shopifyTotal) + " away from FREE delivery on orders $50 and up.";
         });
       }
     }
@@ -670,16 +646,8 @@
       "content": "t:sections.shop-cart.settings.summary.header"
     },
     {
-      "type": "checkbox",
-      "id": "show_service_fee",
-      "label": "t:sections.shop-cart.settings.show_service_fee.label",
-      "default": false
-    },
-    {
-      "type": "number",
-      "id": "service_fee_amount",
-      "label": "t:sections.shop-cart.settings.service_fee_amount.label",
-      "default": 300
+      "type": "paragraph",
+      "content": "Cart subtotal uses Shopify product totals without an additional service fee."
     }
   ]
 }
