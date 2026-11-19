@@ -5,6 +5,26 @@
   --alpha-badge-border: 0.1;
 }
 
+/* Catalina's Farm - Policy Pages */
+
+.shopify-policy__container {
+  max-width: 1100px !important;
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 30px !important;
+  padding-right: 30px !important;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .shopify-policy__container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+
 .container {
     max-width: 1296px;
     margin-left: auto !important;
